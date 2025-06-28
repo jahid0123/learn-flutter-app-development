@@ -7,64 +7,136 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Practice One Project',
+      home: const HomeActivity(),
+      darkTheme: ThemeData(primarySwatch: Colors.green),
+      theme: ThemeData(primarySwatch: Colors.blue),
+      color: Colors.amber,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Practice One Project Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class HomeActivity extends StatelessWidget {
+  const HomeActivity({super.key});
 
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  MySnackBar(message, context) {
+    return ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message))
+    );
   }
+
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: Text("My First Flutter App"),
+        backgroundColor: Colors.green,
+        toolbarOpacity: 1,
+        actions: [
+          IconButton(onPressed: () {
+            MySnackBar("Comments", context);
+          }, icon: Icon(Icons.comment)),
+          IconButton(onPressed: () {
+            MySnackBar("Search", context);
+          }, icon: Icon(Icons.search)),
+          IconButton(onPressed: () {
+            MySnackBar("Settings", context);
+          }, icon: Icon(Icons.settings)),
+          IconButton(onPressed: () {
+            MySnackBar("Email", context);
+          }, icon: Icon(Icons.email))
+        ],
       ),
-      body: Center(
+      floatingActionButton: FloatingActionButton(
+        elevation: 10,
+        child: Icon(Icons.add),
+        backgroundColor: Colors.green,
+        onPressed: () {
+          MySnackBar("Floating Action Button", context);
+        },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
 
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+        currentIndex: 0,
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.message), label: "Contact"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+        ],
+        onTap: (int index) {
+          if (index == 0) {
+            MySnackBar("Home bottom menu", context);
+          }
+          if (index == 1) {
+            MySnackBar("Contact bottom menu", context);
+          }
+          if (index == 2) {
+            MySnackBar("Profile bottom menu", context);
+          }
+        },
+      ),
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            DrawerHeader(
+              padding: EdgeInsets.all(0),
+              child: UserAccountsDrawerHeader(
+                decoration: BoxDecoration(color: Colors.lightGreen),
+                accountName: Text("Jahid Ahmed"),
+                accountEmail: Text("ajahid97@gmail.com"),
+                currentAccountPicture: Image.network("https://picsum.photos/200/300"),
+              ),
+            ),
+            ListTile(
+              title: Text("Home"),
+              leading: Icon(Icons.home),
+              onTap: () {
+                MySnackBar("Home bottom menu", context);
+              },
+            ),
+            ListTile(
+              title: Text("Contact"),
+              leading: Icon(Icons.message),
+              onTap: () {
+                MySnackBar("Contact bottom menu", context);
+              },
+            ),
+            ListTile(
+              title: Text("Gallery"),
+              leading: Icon(Icons.browse_gallery),
+              onTap: () {
+                MySnackBar("Gallery bottom menu", context);
+              },
+            ),
+            ListTile(
+              title: Text("Settings"),
+              leading: Icon(Icons.settings),
+              onTap: () {
+                MySnackBar("Settings bottom menu", context);
+              },
+            ),
+            ListTile(
+              title: Text("Feedback"),
+              leading: Icon(Icons.feedback),
+              onTap: () {
+                MySnackBar("Feedback bottom menu", context);
+              },
+            ),
+            ListTile(
+              title: Text("Logout"),
+              leading: Icon(Icons.logout),
+              onTap: () {
+                MySnackBar("Logout bottom menu", context);
+              },
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      body: Text("This is the body Section of Flutter App!"),
     );
   }
 }
