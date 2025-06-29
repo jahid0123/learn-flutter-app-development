@@ -136,7 +136,45 @@ class HomeActivity extends StatelessWidget {
           ],
         ),
       ),
-      body: Text("This is the body Section of Flutter App!"),
+      body: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Container(
+            height: 100,
+            width: 100,
+            margin: EdgeInsets.all(5),
+            padding: EdgeInsets.all(5),
+            child: Text("Jahid Ahmed", style: TextStyle(fontSize: 10),),
+            decoration: BoxDecoration(
+                color: Colors.orange,
+                border: Border.all(color: Colors.lightGreen, width: 6)
+            ),
+          ),
+          Container(
+            height: 100,
+            width: 100,
+            margin: EdgeInsets.all(5),
+            padding: EdgeInsets.all(5),
+            child: Text("Jahid Ahmed", style: TextStyle(fontSize: 10),),
+            decoration: BoxDecoration(
+                color: Colors.orange,
+                border: Border.all(color: Colors.lightGreen, width: 6)
+            ),
+          ),
+          Container(
+            height: 100,
+            width: 100,
+            margin: EdgeInsets.all(20),
+            padding: EdgeInsets.all(5),
+            child: Text("Jahid Ahmed", style: TextStyle(fontSize: 10),),
+            decoration: BoxDecoration(
+                color: Colors.orange,
+                border: Border.all(color: Colors.lightGreen, width: 6)
+            ),
+          ),
+
+        ],
+      )
     );
   }
 }
