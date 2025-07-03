@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:rent_house_mobile_application/views/unlock_property_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/GetPostedProperty.dart';
 import '../models/user.dart';
@@ -17,7 +18,7 @@ class UserHomeScreen extends StatefulWidget {
 }
 
 class _UserHomeScreenState extends State<UserHomeScreen> {
-  late Future<User?> user;
+  User? _user; // changed from Future<User?>
   final PropertyService _propertyService = PropertyService();
   final AuthService _authService = AuthService();
   late Future<List<GetPostedProperty>> futureProperties;
@@ -30,13 +31,12 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     super.initState();
     futureProperties = _propertyService.fetchPostedProperties();
     _loadUserInfo();
-
   }
 
   Future<void> _loadUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token");
-    final userId = prefs.getInt("userId");
+    final userId = prefs.getInt("id");
 
     if (token == null || userId == null) return;
 
@@ -52,10 +52,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       final userInfo = User.fromJson(data);
 
       setState(() {
-        user = user;
+        _user = userInfo;
       });
 
-      // Optional: Store updated values
       prefs.setString("name", userInfo.name);
       prefs.setString("email", userInfo.email);
       prefs.setInt("creditBalance", userInfo.creditBalance);
@@ -87,6 +86,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         content: Text(success ? "✅ Property Unlocked!" : "❌ Failed to unlock."),
       ),
     );
+    Navigator.push(context, MaterialPageRoute(builder: (context)=> UnlockPropertyScreen()));
   }
 
   void _navigateTo(String routeName) {
@@ -103,8 +103,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           padding: EdgeInsets.zero,
           children: [
             UserAccountsDrawerHeader(
-              accountName: Text(user?.name ?? "User"),
-              accountEmail: Text(user?.email ?? "user@example.com"),
+              accountName: Text(_user?.name ?? "User"),
+              accountEmail: Text(_user?.email ?? "user@example.com"),
+
               currentAccountPicture: const CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Icon(Icons.person, size: 40),
@@ -117,7 +118,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     children: [
                       const Text("৳", style: TextStyle(fontSize: 12, color: Colors.white70)),
                       Text(
-                        user?.creditBalance.toString() ?? "0",
+                        _user?.creditBalance.toString() ?? "0",
                         style: const TextStyle(fontSize: 16, color: Colors.white),
                       ),
                     ],
@@ -138,7 +139,12 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             ListTile(
               leading: const Icon(Icons.lock_open),
               title: const Text("Unlock Property"),
-              onTap: () => _navigateTo("/unlock-property"),
+              onTap: () => _navigateTo("/unlock_property"),
+            ),
+            ListTile(
+              leading: const Icon(Icons.backpack),
+              title: const Text("Buy Package"),
+              onTap: () => _navigateTo("/credit_package"),
             ),
             ListTile(
               leading: const Icon(Icons.history),
