@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:rent_house_mobile_application/views/credit_package_screen.dart';
 import 'package:rent_house_mobile_application/views/home_screen.dart';
 import 'package:rent_house_mobile_application/views/login_screen.dart';
+import 'package:rent_house_mobile_application/views/post_property_screen.dart';
+import 'package:rent_house_mobile_application/views/profile_screen.dart';
+import 'package:rent_house_mobile_application/views/purchase_history_screen.dart';
 import 'package:rent_house_mobile_application/views/register_screen.dart';
 import 'package:rent_house_mobile_application/views/splash_screen.dart';
 import 'package:rent_house_mobile_application/views/unlock_property_screen.dart';
@@ -28,6 +31,10 @@ class RentHouseApp extends StatelessWidget {
         '/user_home': (context) => const UserHomeScreen(),
         '/unlock_property': (context) => const UnlockPropertyScreen(),
         '/credit_package': (context) => const CreditPackageScreen(),
+        '/purchase_history': (context) => const PurchaseHistoryScreen(),
+        '/profile': (context) => const ProfileScreen(),
+        '/post_property': (context) => const PostPropertyScreen(),
+
       },
     );
   }

@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/GetPostedProperty.dart';
 import '../models/MyUnlockProperty.dart';
+import '../models/PropertyPostDto.dart';
 
 
 class PropertyService {
@@ -79,5 +82,27 @@ class PropertyService {
     }
   }
 
+  Future<bool> postProperty(PropertyPostDto property, List<File> images) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
+    int? userId = prefs.getInt("id");
+    property.userID = userId;
+
+    var uri = Uri.parse("$baseUrl/api/user/post/property");
+    var request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['property'] = jsonEncode(property.toJson());
+
+    for (var file in images) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'images',
+        file.path,
+        contentType: MediaType('image', 'jpeg'),
+      ));
+    }
+
+    var response = await request.send();
+    return response.statusCode == 201;
+  }
 
 }

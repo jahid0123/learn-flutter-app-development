@@ -18,11 +18,10 @@ class UserHomeScreen extends StatefulWidget {
 }
 
 class _UserHomeScreenState extends State<UserHomeScreen> {
-  User? _user; // changed from Future<User?>
+  User? _user;
   final PropertyService _propertyService = PropertyService();
   final AuthService _authService = AuthService();
   late Future<List<GetPostedProperty>> futureProperties;
-
   final TextEditingController searchController = TextEditingController();
   final String imageBaseUrl = "http://10.0.2.2:8080/api/user/image/paths/";
 
@@ -42,9 +41,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
     final response = await http.get(
       Uri.parse("http://10.0.2.2:8080/api/user/info?userId=$userId"),
-      headers: {
-        "Authorization": "Bearer $token",
-      },
+      headers: {"Authorization": "Bearer $token"},
     );
 
     if (response.statusCode == 200) {
@@ -76,7 +73,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   Future<void> _unlockProperty(int propertyId) async {
     final isLoggedIn = await _authService.isLoggedIn();
     if (!isLoggedIn) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
       return;
     }
 
@@ -86,7 +86,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         content: Text(success ? "✅ Property Unlocked!" : "❌ Failed to unlock."),
       ),
     );
-    Navigator.push(context, MaterialPageRoute(builder: (context)=> UnlockPropertyScreen()));
+
+    if (success) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const UnlockPropertyScreen()),
+      );
+    }
   }
 
   void _navigateTo(String routeName) {
@@ -97,6 +103,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(title: const Text("User Home")),
       drawer: Drawer(
         child: ListView(
@@ -105,31 +112,41 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             UserAccountsDrawerHeader(
               accountName: Text(_user?.name ?? "User"),
               accountEmail: Text(_user?.email ?? "user@example.com"),
-
               currentAccountPicture: const CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Icon(Icons.person, size: 40),
               ),
-              otherAccountsPictures: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("৳", style: TextStyle(fontSize: 12, color: Colors.white70)),
-                      Text(
-                        _user?.creditBalance.toString() ?? "0",
-                        style: const TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              // otherAccountsPictures: [
+              //   Padding(
+              //     padding: const EdgeInsets.all(0),
+              //     child: Column(
+              //       mainAxisAlignment: MainAxisAlignment.end,
+              //       children: [
+              //         const Text(
+              //           "Credit Balance",
+              //           style: TextStyle(fontSize: 12, color: Colors.white70),
+              //         ),
+              //         Text(
+              //           _user?.creditBalance.toString() ?? "0",
+              //           style: const TextStyle(
+              //             fontSize: 16,
+              //             color: Colors.white,
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ],
             ),
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text("Profile"),
               onTap: () => _navigateTo("/profile"),
+            ),
+            ListTile(
+              leading: const Icon(Icons.add),
+              title: const Text("Post Property"),
+              onTap: () => _navigateTo("/post_property"),
             ),
             ListTile(
               leading: const Icon(Icons.home_work),
@@ -149,7 +166,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             ListTile(
               leading: const Icon(Icons.history),
               title: const Text("Purchase History"),
-              onTap: () => _navigateTo("/purchase-history"),
+              onTap: () => _navigateTo("/purchase_history"),
             ),
             ListTile(
               leading: const Icon(Icons.settings),
@@ -165,117 +182,127 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: TextField(
-              controller: searchController,
-              decoration: const InputDecoration(
-                labelText: "Search by title, thana, section or price",
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (_) => setState(() {}),
-            ),
-          ),
-          Expanded(
-            child: FutureBuilder<List<GetPostedProperty>>(
-              future: futureProperties,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text("Error: ${snapshot.error}"));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text("No properties found."));
-                }
+      body: SafeArea(
+        child: FutureBuilder<List<GetPostedProperty>>(
+          future: futureProperties,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text("Error: ${snapshot.error}"));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text("No properties found."));
+            }
 
-                final query = searchController.text.toLowerCase().trim();
-                final properties = snapshot.data!;
-                final filtered = properties.where((p) {
-                  if (query.isEmpty) return true;
+            final query = searchController.text.toLowerCase().trim();
+            final properties = snapshot.data!;
+            final filtered = properties.where((p) {
+              if (query.isEmpty) return true;
+              final priceQuery = int.tryParse(query);
+              if (priceQuery != null) return p.rentAmount <= priceQuery;
+              return p.title.toLowerCase().contains(query) ||
+                  p.thana.toLowerCase().contains(query) ||
+                  p.section.toLowerCase().contains(query);
+            }).toList();
 
-                  final priceQuery = int.tryParse(query);
-                  if (priceQuery != null) {
-                    return p.rentAmount <= priceQuery;
-                  }
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: TextField(
+                    controller: searchController,
+                    decoration: const InputDecoration(
+                      labelText: "Search by title, thana, section or price",
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final prop = filtered[index];
+                      final imageUrl = prop.imageUrls.isNotEmpty
+                          ? "$imageBaseUrl${prop.imageUrls.first}"
+                          : "https://via.placeholder.com/300x180.png?text=No+Image";
 
-                  return p.title.toLowerCase().contains(query) ||
-                      p.thana.toLowerCase().contains(query) ||
-                      p.section.toLowerCase().contains(query);
-                }).toList();
-
-                return ListView.builder(
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final prop = filtered[index];
-                    final imageUrl = prop.imageUrls.isNotEmpty
-                        ? "$imageBaseUrl${prop.imageUrls.first}"
-                        : "https://via.placeholder.com/300x180.png?text=No+Image";
-
-                    return Card(
-                      margin: const EdgeInsets.all(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Image.network(
-                            imageUrl,
-                            height: 180,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.broken_image),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "${prop.title} (${prop.category})",
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                ),
-                                Text("${prop.thana}, ${prop.division}"),
-                                Text("৳ ${prop.rentAmount}/month", style: const TextStyle(color: Colors.green)),
-                                Text("Available from: ${prop.availableFrom}"),
-                                const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    ElevatedButton.icon(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => PropertyDetailsScreen(property: prop),
-                                          ),
-                                        );
-                                      },
-                                      icon: const Icon(Icons.info_outline),
-                                      label: const Text("View Details"),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    ElevatedButton.icon(
-                                      onPressed: () => _unlockProperty(prop.id),
-                                      icon: const Icon(Icons.lock_open),
-                                      label: const Text("Unlock"),
-                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                      return Card(
+                        margin: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Image.network(
+                              imageUrl,
+                              height: 180,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  const Icon(Icons.broken_image),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
+                            Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "${prop.title} (${prop.category})",
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text("${prop.thana}, ${prop.division}"),
+                                  Text(
+                                    "৳ ${prop.rentAmount}/month",
+                                    style: const TextStyle(color: Colors.green),
+                                  ),
+                                  Text("Available from: ${prop.availableFrom}"),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      ElevatedButton.icon(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  PropertyDetailsScreen(
+                                                    property: prop,
+                                                  ),
+                                            ),
+                                          );
+                                        },
+                                        icon: const Icon(Icons.info_outline),
+                                        label: const Text("View Details"),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      ElevatedButton.icon(
+                                        onPressed: () =>
+                                            _unlockProperty(prop.id),
+                                        icon: const Icon(Icons.lock_open),
+                                        label: const Text("Unlock"),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.orange,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

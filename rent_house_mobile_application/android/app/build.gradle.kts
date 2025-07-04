@@ -20,15 +20,21 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // Your unique application ID
         applicationId = "com.jmjbrothers.rent_house_mobile_application"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+
+        // Flutter version variables
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // ✅ Fix for permission_handler on Android 13+
+        missingDimensionStrategy("flutter-permission", "permissionGroupCamera")
+        missingDimensionStrategy("flutter-permission", "permissionGroupLocation")
+        missingDimensionStrategy("flutter-permission", "permissionGroupPhotos")
     }
+
 
     buildTypes {
         release {
